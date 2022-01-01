@@ -1,0 +1,7 @@
+---
+ignore: |
+  **/charts/
+
+rules:
+  braces:
+    max-spaces-inside: 1

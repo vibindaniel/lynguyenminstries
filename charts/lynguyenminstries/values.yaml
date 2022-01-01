@@ -1,0 +1,96 @@
+# Default values for lynguyenminstries.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: wordpress
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: php7.3-fpm-alpine
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 60
+  targetMemoryUtilizationPercentage: 60
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: www.lynguyenministries.com
+      paths: ["/"]
+    - host: lynguyenministries.com
+      paths: ["/"]
+  tls:
+   - secretName: ltcwm-tls
+     hosts:
+       - www.lynguyenministries.com
+       - lynguyenministries.com
+
+resources:
+  requests:
+    cpu: 4
+    memory: 1Gi
+  limits:
+    cpu: 8
+    memory: 8Gi
+
+env:
+  MYSQL_ROOT_PASSWORD: crystal-demise-unplowed
+  WORDPRESS_DB_NAME: wordpress
+  WORDPRESS_DB_USER: diamond
+  WORDPRESS_DB_PASSWORD: state-herself-unicorn
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+mariadb:
+  auth:
+    rootPassword: crystal-demise-unplowed
+    database: wordpress
+    username: diamond
+    password: state-herself-unicorn
+    replicationPassword: unlit-boaster-sauna
+  architecture: replication
+  global:
+    storageClass: longhorn
+  secondary:
+    replicaCount: 2

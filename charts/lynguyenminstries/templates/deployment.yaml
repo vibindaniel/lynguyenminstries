@@ -1,0 +1,127 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "chart.fullname" . }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "chart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "chart.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "chart.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: wordpress
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: php
+              containerPort: 9000
+              protocol: TCP
+          args:
+            - /bin/bash
+            - -c
+            - |
+              apk add icu-dev;
+              docker-php-ext-install -j$(nproc) intl;
+              docker-entrypoint.sh php-fpm;
+          env:
+            - name: WORDPRESS_TABLE_PREFIX
+              value: wp_
+            - name: WORDPRESS_DB_HOST
+              value: {{ .Release.Name }}-mariadb-primary
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key | quote }}
+              value: {{ $value | quote }}
+            {{- end }}
+          livenessProbe:
+            initialDelaySeconds: 600
+            tcpSocket:
+              port: php
+          readinessProbe:
+            initialDelaySeconds: 60
+            failureThreshold: 60
+            tcpSocket:
+              port: php
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - mountPath: /usr/local/etc/php/conf.d/custom-php.ini
+              name: config
+              subPath: custom-php.ini
+            - mountPath: /usr/local/etc/php-fpm.d/www.custom.conf
+              name: config
+              subPath: www.conf
+            - mountPath: /var/www/html
+              name: data
+        - name: nginx
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: nginx:alpine
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            initialDelaySeconds: 600
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            initialDelaySeconds: 60
+            failureThreshold: 60
+            httpGet:
+              path: /
+              port: http
+          resources:
+            requests:
+              cpu: 200m
+              memory: 128Mi
+            limits:
+              cpu: 500
+              memory: 256Mi
+          volumeMounts:
+            - mountPath: /etc/nginx/conf.d/nginx.conf
+              name: config
+              subPath: nginx.conf
+            - mountPath: /var/www/html
+              name: data
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "chart.fullname" . }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "chart.fullname" . }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
