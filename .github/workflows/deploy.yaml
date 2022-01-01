@@ -74,4 +74,4 @@ jobs:
         env:
           KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
           IMAGE_USER: ${{ github.actor }}
-          NAMESPACE: lynguyenminstries
+          NAMESPACE: lynguyenministries
