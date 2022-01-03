@@ -10,29 +10,73 @@ data:
       listen 8080;
       client_max_body_size 60M;
 
-      access_log off;
+      server_name_in_redirect off;
+      port_in_redirect off;
+      server_tokens off;
+      access_log /dev/stdout;
+      error_log /dev/stdout info;
 
       root /var/www/html;
-      index index.php;
-
-      server_tokens off;
+      index index.php index.html index.htm default.html default.htm;
 
       location / {
-        # First attempt to serve request as file, then
-        # as directory, then fall back to displaying a 404.
+        if ($query_string ~ "base64_encode[^(]*\([^)]*\)"){
+          return 403;
+        }
+        if ($query_string ~* "(<|%3C)([^s]*s)+cript.*(>|%3E)"){
+          return 403;
+        }
+        if ($query_string ~ "GLOBALS(=|\[|\%[0-9A-Z]{0,2})"){
+          return 403;
+        }
+        if ($query_string ~ "_REQUEST(=|\[|\%[0-9A-Z]{0,2})"){
+          return 403;
+        }
+        if ($request_method ~ "^(TRACE|TRACK|OPTIONS)"){
+          return 403;
+        }
         try_files $uri $uri/ /index.php?$args;
       }
 
-      # pass the PHP scripts to FastCGI server listening on localhost:9000
-      location ~ \.php$ {
-        fastcgi_split_path_info ^(.+\.php)(/.+)$;
-        fastcgi_pass localhost:9000;
-        fastcgi_index index.php;
-        include fastcgi_params;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        fastcgi_param SCRIPT_NAME $fastcgi_script_name;
+      location @redirect {
+        return 302 /;
       }
 
+      # add global x-content-type-options header
+      add_header X-Content-Type-Options nosniff;
+      # deny running scripts inside writable directories
+      location ~* /(images|cache|media|logs|tmp)/.*\.(php|pl|py|jsp|asp|sh|cgi)$ {
+        return 403;
+        error_page 403 /403_error.html;
+      }
+
+      location ~ \.php$ {
+        fastcgi_pass    localhost:9000;
+        fastcgi_index   index.php;
+        include         fastcgi_params;
+        fastcgi_read_timeout 300;
+        fastcgi_param   SCRIPT_FILENAME     $document_root$fastcgi_script_name;
+        fastcgi_param   SCRIPT_NAME         $fastcgi_script_name;
+        fastcgi_param   HTTP_HOST           lynguyenministries.com;
+        fastcgi_param   HTTPS               on;
+      }
+
+      location ~ /\. {
+        access_log off;
+        log_not_found off;
+        deny all;
+      }
+
+      # caching of files
+      location ~* \.(ico|pdf|flv)$ {
+              expires 1y;
+      }
+
+      location ~* \.(js|css|png|jpg|jpeg|gif|swf|xml|txt)$ {
+        access_log        off;
+        log_not_found     off;
+        expires           360d;
+      }
     }
   custom-php.ini: |-
     # Allow HTTP file uploads
@@ -45,8 +89,7 @@ data:
     post_max_size = 60M
   www.conf: |-
     pm = dynamic
-    pm.max_children = 25
+    pm.max_children = 50
     pm.start_servers = 10
-    pm.min_spare_servers = 5
-    pm.max_spare_servers = 20
-    pm.max_requests = 498
+    pm.min_spare_servers = 10
+    pm.max_spare_servers = 50
