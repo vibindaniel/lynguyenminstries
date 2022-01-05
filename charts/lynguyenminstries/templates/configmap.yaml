@@ -17,65 +17,40 @@ data:
       error_log /dev/stdout info;
 
       root /var/www/html;
-      index index.php index.html index.htm default.html default.htm;
+      index index.php;
+
+      location = /favicon.ico {
+              log_not_found off;
+              access_log off;
+      }
+
+      location = /robots.txt {
+              allow all;
+              log_not_found off;
+              access_log off;
+      }
 
       location / {
-        if ($query_string ~ "base64_encode[^(]*\([^)]*\)"){
-          return 403;
-        }
-        if ($query_string ~* "(<|%3C)([^s]*s)+cript.*(>|%3E)"){
-          return 403;
-        }
-        if ($query_string ~ "GLOBALS(=|\[|\%[0-9A-Z]{0,2})"){
-          return 403;
-        }
-        if ($query_string ~ "_REQUEST(=|\[|\%[0-9A-Z]{0,2})"){
-          return 403;
-        }
-        if ($request_method ~ "^(TRACE|TRACK|OPTIONS)"){
-          return 403;
-        }
-        try_files $uri $uri/ /index.php?$args;
-      }
-
-      location @redirect {
-        return 302 /;
-      }
-
-      # add global x-content-type-options header
-      add_header X-Content-Type-Options nosniff;
-      # deny running scripts inside writable directories
-      location ~* /(images|cache|media|logs|tmp)/.*\.(php|pl|py|jsp|asp|sh|cgi)$ {
-        return 403;
-        error_page 403 /403_error.html;
+              # This is cool because no php is touched for static content.
+              # include the "?$args" part so non-default permalinks doesn't break when using query string
+              try_files $uri $uri/ /index.php?$args;
       }
 
       location ~ \.php$ {
-        fastcgi_pass    localhost:9000;
-        fastcgi_index   index.php;
-        include         fastcgi_params;
-        fastcgi_read_timeout 300;
-        fastcgi_param   SCRIPT_FILENAME     $document_root$fastcgi_script_name;
-        fastcgi_param   SCRIPT_NAME         $fastcgi_script_name;
-        fastcgi_param   HTTP_HOST           lynguyenministries.com;
-        fastcgi_param   HTTPS               on;
+              #NOTE: You should have "cgi.fix_pathinfo = 0;" in php.ini
+              fastcgi_intercept_errors on;
+              fastcgi_pass    localhost:9000;
+              fastcgi_index   index.php;
+              include         fastcgi_params;
+              fastcgi_read_timeout 300;
+              fastcgi_param   SCRIPT_FILENAME     $document_root$fastcgi_script_name;
+              fastcgi_param   SCRIPT_NAME         $fastcgi_script_name;
+              fastcgi_param   HTTPS               on;
       }
 
-      location ~ /\. {
-        access_log off;
-        log_not_found off;
-        deny all;
-      }
-
-      # caching of files
-      location ~* \.(ico|pdf|flv)$ {
-              expires 1y;
-      }
-
-      location ~* \.(js|css|png|jpg|jpeg|gif|swf|xml|txt)$ {
-        access_log        off;
-        log_not_found     off;
-        expires           360d;
+      location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
+              expires max;
+              log_not_found off;
       }
     }
   custom-php.ini: |-
@@ -87,6 +62,7 @@ data:
 
     # Maximum size of form post data
     post_max_size = 60M
+    cgi.fix_pathinfo = 0;
   www.conf: |-
     pm = dynamic
     pm.max_children = 50
