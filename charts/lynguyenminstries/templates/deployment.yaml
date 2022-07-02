@@ -36,13 +36,13 @@ spec:
             - name: php
               containerPort: 9000
               protocol: TCP
-          args:
-            - /bin/bash
-            - -c
-            - |
-              apk add icu-dev;
-              docker-php-ext-install -j$(nproc) intl;
-              docker-entrypoint.sh php-fpm;
+          # args:
+          #   - /bin/bash
+          #   - -c
+          #   - |
+          #     apk add icu-dev;
+          #     docker-php-ext-install -j$(nproc) intl;
+          #     docker-entrypoint.sh php-fpm;
           env:
             - name: WORDPRESS_TABLE_PREFIX
               value: wp_
@@ -53,12 +53,12 @@ spec:
               value: {{ $value | quote }}
             {{- end }}
           livenessProbe:
-            initialDelaySeconds: 600
+            initialDelaySeconds: 60
             tcpSocket:
               port: php
           readinessProbe:
-            initialDelaySeconds: 60
-            failureThreshold: 60
+            initialDelaySeconds: 10
+            failureThreshold: 10
             tcpSocket:
               port: php
           resources:
@@ -82,13 +82,13 @@ spec:
               containerPort: 8080
               protocol: TCP
           livenessProbe:
-            initialDelaySeconds: 600
+            initialDelaySeconds: 60
             httpGet:
               path: /
               port: http
           readinessProbe:
-            initialDelaySeconds: 60
-            failureThreshold: 60
+            initialDelaySeconds: 10
+            failureThreshold: 10
             httpGet:
               path: /
               port: http

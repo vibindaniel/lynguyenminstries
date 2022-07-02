@@ -10,29 +10,48 @@ data:
       listen 8080;
       client_max_body_size 60M;
 
-      access_log off;
+      server_name_in_redirect off;
+      port_in_redirect off;
+      server_tokens off;
+      access_log /dev/stdout;
+      error_log /dev/stdout info;
 
       root /var/www/html;
       index index.php;
 
-      server_tokens off;
+      location = /favicon.ico {
+              log_not_found off;
+              access_log off;
+      }
+
+      location = /robots.txt {
+              allow all;
+              log_not_found off;
+              access_log off;
+      }
 
       location / {
-        # First attempt to serve request as file, then
-        # as directory, then fall back to displaying a 404.
-        try_files $uri $uri/ /index.php?$args;
+              # This is cool because no php is touched for static content.
+              # include the "?$args" part so non-default permalinks doesn't break when using query string
+              try_files $uri $uri/ /index.php?$args;
       }
 
-      # pass the PHP scripts to FastCGI server listening on localhost:9000
       location ~ \.php$ {
-        fastcgi_split_path_info ^(.+\.php)(/.+)$;
-        fastcgi_pass localhost:9000;
-        fastcgi_index index.php;
-        include fastcgi_params;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        fastcgi_param SCRIPT_NAME $fastcgi_script_name;
+              #NOTE: You should have "cgi.fix_pathinfo = 0;" in php.ini
+              fastcgi_intercept_errors on;
+              fastcgi_pass    localhost:9000;
+              fastcgi_index   index.php;
+              include         fastcgi_params;
+              fastcgi_read_timeout 300;
+              fastcgi_param   SCRIPT_FILENAME     $document_root$fastcgi_script_name;
+              fastcgi_param   SCRIPT_NAME         $fastcgi_script_name;
+              fastcgi_param   HTTPS               on;
       }
 
+      location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
+              expires max;
+              log_not_found off;
+      }
     }
   custom-php.ini: |-
     # Allow HTTP file uploads
@@ -43,10 +62,10 @@ data:
 
     # Maximum size of form post data
     post_max_size = 60M
+    cgi.fix_pathinfo = 0;
   www.conf: |-
     pm = dynamic
-    pm.max_children = 25
+    pm.max_children = 50
     pm.start_servers = 10
-    pm.min_spare_servers = 5
-    pm.max_spare_servers = 20
-    pm.max_requests = 498
+    pm.min_spare_servers = 10
+    pm.max_spare_servers = 50
