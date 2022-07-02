@@ -2,6 +2,7 @@
 name: Feature Branch Deploy
 
 on:
+  workflow_dispatch:
   push:
     branches-ignore:
       - master
