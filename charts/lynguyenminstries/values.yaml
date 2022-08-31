@@ -96,7 +96,7 @@ mariadb:
     replicationPassword: unlit-boaster-sauna
   architecture: replication
   primary:
-    name:
+    name: ""
   global:
     storageClass: longhorn
   secondary:
