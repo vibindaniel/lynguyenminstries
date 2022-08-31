@@ -93,8 +93,6 @@ mariadb:
     username: diamond
     password: state-herself-unicorn
     replicationPassword: unlit-boaster-sauna
-  architecture: replication
+  architecture: standalone
   global:
     storageClass: longhorn
-  secondary:
-    replicaCount: 2
