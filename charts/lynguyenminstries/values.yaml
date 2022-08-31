@@ -79,6 +79,7 @@ env:
   WORDPRESS_DB_NAME: wordpress
   WORDPRESS_DB_USER: diamond
   WORDPRESS_DB_PASSWORD: state-herself-unicorn
+  WORDPRESS_DB_HOST: wordpress-mariadb
 
 nodeSelector: {}
 
