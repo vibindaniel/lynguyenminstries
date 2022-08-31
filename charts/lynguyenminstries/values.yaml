@@ -38,7 +38,7 @@ securityContext: {}
 
 autoscaling:
   enabled: true
-  minReplicas: 3
+  minReplicas: 1
   maxReplicas: 10
   targetCPUUtilizationPercentage: 60
   targetMemoryUtilizationPercentage: 60
@@ -94,6 +94,10 @@ mariadb:
     username: diamond
     password: state-herself-unicorn
     replicationPassword: unlit-boaster-sauna
-  architecture: standalone
+  architecture: replication
+  primary:
+    name:
   global:
     storageClass: longhorn
+  secondary:
+    replicaCount: 2
