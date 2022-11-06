@@ -36,24 +36,24 @@ jobs:
           tags: ${{ env.IMAGE_REPOSITORY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           outputs: type=image,name=${{ env.IMAGE_REPOSITORY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: image
-          image-ref: ${{ env.IMAGE_REPOSITORY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          format: "table"
-          exit-code: "1"
-          ignore-unfixed: true
-          severity: "CRITICAL"
+#       - name: Run Trivy vulnerability scanner
+#         uses: aquasecurity/trivy-action@master
+#         with:
+#           scan-type: image
+#           image-ref: ${{ env.IMAGE_REPOSITORY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+#           format: "table"
+#           exit-code: "1"
+#           ignore-unfixed: true
+#           severity: "CRITICAL"
 
-      - name: Run but not Fail Trivy
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: image
-          image-ref: ${{ env.IMAGE_REPOSITORY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          format: "table"
-          ignore-unfixed: true
-          severity: "CRITICAL,HIGH"
+#       - name: Run but not Fail Trivy
+#         uses: aquasecurity/trivy-action@master
+#         with:
+#           scan-type: image
+#           image-ref: ${{ env.IMAGE_REPOSITORY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+#           format: "table"
+#           ignore-unfixed: true
+#           severity: "CRITICAL,HIGH"
 
       - name: Log in to the Container registry
         uses: docker/login-action@v1
