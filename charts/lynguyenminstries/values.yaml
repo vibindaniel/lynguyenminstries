@@ -38,8 +38,8 @@ securityContext: {}
 
 autoscaling:
   enabled: true
-  minReplicas: 3
-  maxReplicas: 10
+  minReplicas: 1
+  maxReplicas: 1
   targetCPUUtilizationPercentage: 75
   targetMemoryUtilizationPercentage: 75
 
@@ -100,6 +100,6 @@ mariadb:
     persistence:
       size: 100Gi
   global:
-    storageClass: longhorn
+    storageClass: local-path
   secondary:
-    replicaCount: 2
+    replicaCount: 1
