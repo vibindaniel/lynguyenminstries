@@ -6,6 +6,8 @@ on:
   push:
     branches-ignore:
       - master
+  schedule:
+    - cron:  '0 0 * * 0'
 
 env:
   IMAGE_NAME: wordpress/ly
@@ -76,3 +78,12 @@ jobs:
           KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
           IMAGE_USER: ${{ github.actor }}
           NAMESPACE: lynguyenministries
+
+      - name: Run but not Fail Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: image
+          image-ref: ${{ env.IMAGE_REPOSITORY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: "table"
+          ignore-unfixed: true
+          severity: "CRITICAL,HIGH"
