@@ -46,8 +46,6 @@ spec:
           env:
             - name: WORDPRESS_TABLE_PREFIX
               value: wp_
-            - name: WORDPRESS_DB_HOST
-              value: {{ .Release.Name }}-mariadb-primary
             {{- range $key, $value := .Values.env }}
             - name: {{ $key | quote }}
               value: {{ $value | quote }}
