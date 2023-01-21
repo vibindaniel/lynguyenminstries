@@ -1,4 +1,4 @@
-FROM wordpress:fpm-alpine
+FROM wordpress:php7.4-fpm-alpine
 
 RUN apk add -U --no-cache icu-dev &&\
   rm -rf /var/cache/apk/* &&\
