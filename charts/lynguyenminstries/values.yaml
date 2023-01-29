@@ -68,38 +68,19 @@ ingress:
 
 resources:
   requests:
-    cpu: 8
-    memory: 8Gi
+    cpu: 1
+    memory: 2Gi
   limits:
-    cpu: 8
-    memory: 8Gi
+    memory: 2Gi
 
 env:
-  MYSQL_ROOT_PASSWORD: crystal-demise-unplowed
-  WORDPRESS_DB_NAME: wordpress
-  WORDPRESS_DB_USER: diamond
+  WORDPRESS_DB_NAME: lynguyenministries
+  WORDPRESS_DB_USER: lynguyenministries
   WORDPRESS_DB_PASSWORD: state-herself-unicorn
-  WORDPRESS_DB_HOST: wordpress-mariadb
+  WORDPRESS_DB_HOST: '192.168.0.6'
 
 nodeSelector: {}
 
 tolerations: []
 
 affinity: {}
-
-mariadb:
-  auth:
-    rootPassword: crystal-demise-unplowed
-    database: wordpress
-    username: diamond
-    password: state-herself-unicorn
-    replicationPassword: unlit-boaster-sauna
-  architecture: standalone
-  primary:
-    name: ""
-    persistence:
-      size: 100Gi
-  global:
-    storageClass: local-path
-  secondary:
-    replicaCount: 1
